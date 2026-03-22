@@ -82,6 +82,8 @@ export default function UploadPage() {
         >
           <input
             ref={inputRef}
+            id="pdf-file-input"
+            name="pdf-file"
             type="file"
             accept=".pdf"
             className="hidden"
@@ -119,6 +121,8 @@ export default function UploadPage() {
             タイトル（任意）
           </label>
           <input
+            id="pdf-title"
+            name="title"
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -151,6 +155,9 @@ export default function UploadPage() {
 
         <p className="mt-3 text-xs text-gray-400 text-center">
           テキストPDF・画像PDF（スキャン）対応。OCRで自動テキスト抽出します。
+        </p>
+        <p className="mt-1 text-xs text-gray-300 text-center font-mono">
+          build: {process.env.NEXT_PUBLIC_BUILD_ID || "dev"}
         </p>
       </main>
     </div>

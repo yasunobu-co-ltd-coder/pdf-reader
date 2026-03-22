@@ -1,7 +1,20 @@
 import type { NextConfig } from "next";
 import path from "path";
+import { execSync } from "child_process";
+
+// ビルド時にコミットハッシュを取得
+let commitHash = "unknown";
+try {
+  commitHash = execSync("git rev-parse --short HEAD").toString().trim();
+} catch {
+  // Vercel では VERCEL_GIT_COMMIT_SHA が使える
+  commitHash = (process.env.VERCEL_GIT_COMMIT_SHA || "unknown").slice(0, 7);
+}
 
 const nextConfig: NextConfig = {
+  env: {
+    NEXT_PUBLIC_BUILD_ID: commitHash,
+  },
   // Vercelデプロイ時のルートディレクトリ指定
   outputFileTracingRoot: path.join(__dirname),
 
