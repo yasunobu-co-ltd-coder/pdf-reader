@@ -1,14 +1,10 @@
 // =============================================
-// MVP データモデル型定義
+// データモデル型定義
 // =============================================
 
-export type DocumentStatus =
-  | "uploaded"
-  | "extracting"
-  | "extracted"
-  | "generating_audio"
-  | "completed"
-  | "error";
+export type DocumentStatus = "uploaded" | "extracting" | "extracted" | "error";
+
+export type AudioStatus = "generating" | "processing" | "ready" | "failed";
 
 export type Document = {
   id: string;
@@ -19,11 +15,38 @@ export type Document = {
   total_pages: number;
   raw_text: string;
   tts_text: string;
-  audio_path: string | null;
-  duration_sec: number | null;
+  text_hash: string | null;
   error_message: string | null;
   created_at: string;
   updated_at: string;
+};
+
+export type DocumentAudio = {
+  id: string;
+  document_id: string;
+  text_hash: string;
+  status: AudioStatus;
+  speaker_id: number;
+  total_chunks: number;
+  completed_chunks: number;
+  current_chunk_index: number | null;
+  progress_text: string | null;
+  duration_sec: number | null;
+  error_message: string | null;
+  locked_by: string | null;
+  processing_started_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AudioChunk = {
+  id: string;
+  audio_id: string;
+  chunk_index: number;
+  chunk_text: string;
+  audio_url: string | null;
+  duration_sec: number | null;
+  created_at: string;
 };
 
 export type TTSVoiceSetting = {
@@ -39,56 +62,25 @@ export type TTSVoiceSetting = {
   updated_at: string;
 };
 
+// キャラクターボイス定義
+export const VOICE_CHARACTERS = [
+  { speaker_id: 2, name: "四国めたん", description: "落ち着いた女性声" },
+  { speaker_id: 8, name: "春日部つむぎ", description: "明るい女性声" },
+  { speaker_id: 3, name: "ずんだもん", description: "親しみやすい声" },
+  { speaker_id: 47, name: "ナースロボ＿タイプＴ", description: "明瞭なロボ声" },
+] as const;
+
+export const DEFAULT_SPEAKER_ID = 3;
+
 // VOICEVOX API 型定義
 export type VoicevoxSpeaker = {
   name: string;
   speaker_uuid: string;
-  styles: {
-    name: string;
-    id: number;
-  }[];
+  styles: { name: string; id: number }[];
   version: string;
 };
 
-export type VoicevoxAudioQuery = {
-  accent_phrases: {
-    moras: {
-      text: string;
-      consonant: string | null;
-      consonant_length: number | null;
-      vowel: string;
-      vowel_length: number;
-      pitch: number;
-    }[];
-    accent: number;
-    pause_mora: {
-      text: string;
-      consonant: string | null;
-      consonant_length: number | null;
-      vowel: string;
-      vowel_length: number;
-      pitch: number;
-    } | null;
-    is_interrogative: boolean;
-  }[];
-  speedScale: number;
-  pitchScale: number;
-  intonationScale: number;
-  volumeScale: number;
-  prePhonemeLength: number;
-  postPhonemeLength: number;
-  pauseLength: number | null;
-  pauseLengthScale: number;
-  outputSamplingRate: number;
-  outputStereo: boolean;
-  kana: string;
-};
-
 // API レスポンス型
-export type ApiResponse<T> = {
-  data: T;
-  error: null;
-} | {
-  data: null;
-  error: { code: string; message: string };
-};
+export type ApiResponse<T> =
+  | { data: T; error: null }
+  | { data: null; error: { code: string; message: string } };

@@ -1,0 +1,13 @@
+{
+  "name": "tts-worker",
+  "version": "1.0.0",
+  "description": "VPS TTS Worker - Supabase polling + VOICEVOX synthesis",
+  "main": "tts-worker.js",
+  "scripts": {
+    "start": "node tts-worker.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.0",
+    "dotenv": "^16.4.0"
+  }
+}

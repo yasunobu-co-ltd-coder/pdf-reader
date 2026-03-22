@@ -14,7 +14,6 @@ type DocListItem = {
   title: string;
   status: DocumentStatus;
   total_pages: number;
-  duration_sec: number | null;
   error_message: string | null;
   created_at: string;
 };
@@ -41,11 +40,10 @@ export default function DocumentListPage() {
     fetchDocuments();
   }, [fetchDocuments]);
 
-  // 処理中の文書があれば5秒ごとにポーリング
+  // extracting 中の文書があれば5秒ごとにポーリング
   useEffect(() => {
     const hasProcessing = documents.some(
-      (d) =>
-        d.status === "extracting" || d.status === "generating_audio"
+      (d) => d.status === "extracting"
     );
     if (!hasProcessing) return;
 
@@ -67,13 +65,6 @@ export default function DocumentListPage() {
     } catch (err) {
       alert(err instanceof Error ? err.message : "削除に失敗しました");
     }
-  }
-
-  function formatDuration(sec: number | null): string {
-    if (!sec) return "-";
-    const m = Math.floor(sec / 60);
-    const s = Math.floor(sec % 60);
-    return `${m}:${s.toString().padStart(2, "0")}`;
   }
 
   function formatDate(iso: string): string {
@@ -151,7 +142,6 @@ export default function DocumentListPage() {
                   </button>
                   <div className="flex items-center gap-3 mt-1 text-sm text-gray-500">
                     <span>{doc.total_pages}ページ</span>
-                    <span>{formatDuration(doc.duration_sec)}</span>
                     <span>{formatDate(doc.created_at)}</span>
                   </div>
                   {doc.error_message && (
@@ -163,12 +153,12 @@ export default function DocumentListPage() {
 
                 <div className="flex items-center gap-2 ml-4">
                   <StatusBadge status={doc.status} />
-                  {doc.status === "completed" && (
+                  {doc.status === "extracted" && (
                     <button
                       onClick={() => router.push(`/documents/${doc.id}`)}
-                      className="px-3 py-1 text-sm bg-green-600 text-white rounded-md hover:bg-green-700"
+                      className="px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
                     >
-                      再生
+                      開く
                     </button>
                   )}
                   <button

@@ -9,11 +9,6 @@ const STATUS_CONFIG: Record<
   uploaded: { label: "アップロード済み", color: "bg-gray-100 text-gray-700" },
   extracting: { label: "テキスト抽出中", color: "bg-yellow-100 text-yellow-700" },
   extracted: { label: "抽出完了", color: "bg-blue-100 text-blue-700" },
-  generating_audio: {
-    label: "音声生成中",
-    color: "bg-purple-100 text-purple-700",
-  },
-  completed: { label: "完了", color: "bg-green-100 text-green-700" },
   error: { label: "エラー", color: "bg-red-100 text-red-700" },
 };
 
@@ -24,7 +19,7 @@ export default function StatusBadge({ status }: { status: DocumentStatus }) {
     <span
       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.color}`}
     >
-      {(status === "extracting" || status === "generating_audio") && (
+      {status === "extracting" && (
         <span className="mr-1 animate-spin inline-block w-3 h-3 border-2 border-current border-t-transparent rounded-full" />
       )}
       {config.label}

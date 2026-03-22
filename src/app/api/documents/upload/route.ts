@@ -4,6 +4,7 @@ import { createServerSupabase } from "@/lib/db/supabase";
 import { createDocument, updateDocument } from "@/lib/db/documents";
 import { extractTextFromPdf } from "@/lib/pdf/extractor";
 import { convertRawTextToTtsText } from "@/lib/pdf/text-processor";
+import { computeTextHash } from "@/lib/tts/chunk-splitter";
 import { handleApiError, Errors } from "@/lib/utils/errors";
 
 const MAX_PDF_SIZE = (parseInt(process.env.MAX_PDF_SIZE_MB || "100")) * 1024 * 1024;
@@ -65,11 +66,13 @@ export async function POST(request: NextRequest) {
     // 5. DBに文書レコード作成
     const doc = await createDocument(userId, title, filePath);
 
-    // 6. 抽出結果を保存
+    // 6. 抽出結果を保存（text_hash付き）
+    const textHash = computeTextHash(ttsText);
     const updated = await updateDocument(doc.id, {
       total_pages: totalPages,
       raw_text: rawText,
       tts_text: ttsText,
+      text_hash: textHash,
       status: "extracted",
     });
 

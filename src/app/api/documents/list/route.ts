@@ -14,7 +14,6 @@ export async function GET(request: NextRequest) {
       title: doc.title,
       status: doc.status,
       total_pages: doc.total_pages,
-      duration_sec: doc.duration_sec,
       error_message: doc.error_message,
       created_at: doc.created_at,
       updated_at: doc.updated_at,

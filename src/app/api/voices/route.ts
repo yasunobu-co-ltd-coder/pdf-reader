@@ -1,26 +1,19 @@
 import { NextRequest } from "next/server";
 import { getUserFromRequest } from "@/lib/db/auth";
-import { getSpeakers } from "@/lib/tts/voicevox-client";
 import { handleApiError } from "@/lib/utils/errors";
-
-// 話者一覧は1時間キャッシュ
-let cachedSpeakers: Awaited<ReturnType<typeof getSpeakers>> | null = null;
-let cacheExpiry = 0;
-const CACHE_TTL = 60 * 60 * 1000; // 1時間
+import { VOICE_CHARACTERS } from "@/types";
 
 export async function GET(request: NextRequest) {
   try {
     await getUserFromRequest(request);
 
-    if (cachedSpeakers && Date.now() < cacheExpiry) {
-      return Response.json({ data: cachedSpeakers, error: null });
-    }
+    // キャラクター定義から話者一覧を返す
+    const voices = VOICE_CHARACTERS.map((vc) => ({
+      name: vc.name,
+      styles: [{ name: vc.description, id: vc.speaker_id }],
+    }));
 
-    const speakers = await getSpeakers();
-    cachedSpeakers = speakers;
-    cacheExpiry = Date.now() + CACHE_TTL;
-
-    return Response.json({ data: speakers, error: null });
+    return Response.json({ data: voices, error: null });
   } catch (error) {
     return handleApiError(error);
   }
