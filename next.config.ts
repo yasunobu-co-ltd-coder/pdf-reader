@@ -19,7 +19,7 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(__dirname),
 
   // pdf-parseなどNode.jsモジュールのサーバーサイド限定
-  serverExternalPackages: ["pdf-parse", "tesseract.js"],
+  serverExternalPackages: ["tesseract.js"],
 
   webpack: (config, { isServer }) => {
     if (!isServer) {

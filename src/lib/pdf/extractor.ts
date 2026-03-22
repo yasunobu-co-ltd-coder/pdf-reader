@@ -1,5 +1,4 @@
-import "./node-polyfill";
-import { PDFParse } from "pdf-parse";
+import { extractText, getDocumentProxy } from "unpdf";
 import { Errors } from "@/lib/utils/errors";
 
 export interface PdfExtractResult {
@@ -7,56 +6,43 @@ export interface PdfExtractResult {
   totalPages: number;
 }
 
-// pdf-parse v2 の getText() 戻り値型
-interface TextResult {
-  total: number;
-  pages: { text: string; num: number }[];
-}
-
 // 1ページあたり平均30文字未満 → 画像PDF扱い
 const MIN_CHARS_PER_PAGE = 30;
 
 /**
  * PDFバッファからテキストを抽出する
- * 1. まずpdf-parseでテキスト抽出を試みる
+ * 1. まず unpdf でテキスト抽出を試みる
  * 2. テキストが少なければOCR (スキャンPDF/画像PDF対応)
  */
 export async function extractTextFromPdf(
   buffer: Buffer
 ): Promise<PdfExtractResult> {
-  let parser: InstanceType<typeof PDFParse> | null = null;
   let totalPages = 0;
 
   try {
-    // Phase 1: pdf-parse でテキスト抽出
-    parser = new PDFParse(buffer);
-    const result = (await parser.getText()) as unknown as TextResult;
-    totalPages = result.total || 0;
-    const text = result.pages.map((p) => p.text).join("\n\n").trim();
+    // Phase 1: unpdf でテキスト抽出（サーバーレス環境対応、ポリフィル不要）
+    const pdf = await getDocumentProxy(new Uint8Array(buffer));
+    totalPages = pdf.numPages;
+    const { text } = await extractText(pdf, { mergePages: true });
+    const trimmed = text.trim();
 
     // テキストが十分にあればそのまま返す
-    const charsPerPage = totalPages > 0 ? text.length / totalPages : text.length;
-    if (text.length > 0 && charsPerPage >= MIN_CHARS_PER_PAGE) {
+    const charsPerPage = totalPages > 0 ? trimmed.length / totalPages : trimmed.length;
+    if (trimmed.length > 0 && charsPerPage >= MIN_CHARS_PER_PAGE) {
       console.log(
-        `[PDF] Text extraction OK: ${text.length} chars, ${totalPages} pages (${Math.round(charsPerPage)} chars/page)`
+        `[PDF] Text extraction OK: ${trimmed.length} chars, ${totalPages} pages (${Math.round(charsPerPage)} chars/page)`
       );
-      return { text, totalPages };
+      await pdf.destroy();
+      return { text: trimmed, totalPages };
     }
 
     console.log(
-      `[PDF] Insufficient text (${text.length} chars, ${Math.round(charsPerPage)} chars/page). Trying OCR...`
+      `[PDF] Insufficient text (${trimmed.length} chars, ${Math.round(charsPerPage)} chars/page). Trying OCR...`
     );
+    await pdf.destroy();
   } catch (error) {
     console.error("[PDF] Text extraction failed:", error instanceof Error ? error.message : error);
     console.error("[PDF] Stack:", error instanceof Error ? error.stack : "N/A");
-  } finally {
-    if (parser) {
-      try {
-        parser.destroy();
-      } catch {
-        // destroy失敗は無視
-      }
-    }
   }
 
   // Phase 2: OCR フォールバック（動的インポートでtesseract.jsの読み込み失敗を分離）
