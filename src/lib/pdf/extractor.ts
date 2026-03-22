@@ -1,5 +1,4 @@
 import { PDFParse } from "pdf-parse";
-import { ocrPdf } from "./ocr";
 import { Errors } from "@/lib/utils/errors";
 
 export interface PdfExtractResult {
@@ -7,13 +6,12 @@ export interface PdfExtractResult {
   totalPages: number;
 }
 
-// pdf-parse v2 の getText() 戻り値型（型定義が不完全なため手動定義）
+// pdf-parse v2 の getText() 戻り値型
 interface TextResult {
   total: number;
   pages: { text: string; num: number }[];
 }
 
-// テキスト抽出結果がスカスカかどうか判定する閾値
 // 1ページあたり平均30文字未満 → 画像PDF扱い
 const MIN_CHARS_PER_PAGE = 30;
 
@@ -59,15 +57,15 @@ export async function extractTextFromPdf(
     }
   }
 
-  // Phase 2: OCR フォールバック
+  // Phase 2: OCR フォールバック（動的インポートでtesseract.jsの読み込み失敗を分離）
   try {
+    const { ocrPdf } = await import("./ocr");
     const ocrText = await ocrPdf(buffer);
 
     if (!ocrText || ocrText.trim().length === 0) {
       throw Errors.PDF_NO_TEXT();
     }
 
-    // OCR結果からページ数を推定 (テキスト抽出で取れていれば使う)
     return {
       text: ocrText.trim(),
       totalPages: totalPages || 1,
@@ -81,6 +79,6 @@ export async function extractTextFromPdf(
       throw error;
     }
     console.error("OCR error:", error);
-    throw Errors.PDF_CORRUPTED();
+    throw Errors.PDF_NO_TEXT();
   }
 }
