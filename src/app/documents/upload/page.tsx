@@ -117,7 +117,7 @@ export default function UploadPage() {
 
         {/* タイトル */}
         <div className="mt-6">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="pdf-title" className="block text-sm font-medium text-gray-700 mb-1">
             タイトル（任意）
           </label>
           <input
