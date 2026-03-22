@@ -112,40 +112,39 @@ export default function DocumentListPage() {
               key={doc.id}
               className="bg-white border rounded-lg p-4 hover:shadow-sm transition-shadow"
             >
-              <div className="flex items-start justify-between">
-                <div className="flex-1 min-w-0">
+              <div>
+                <div className="flex items-center justify-between gap-2">
                   <button
                     onClick={() => router.push(`/documents/${doc.id}`)}
-                    className="text-left"
+                    className="text-left min-w-0 flex-1"
                   >
                     <h3 className="font-medium text-gray-900 truncate hover:text-blue-600">
                       {doc.title}
                     </h3>
                   </button>
-                  <div className="flex items-center gap-3 mt-1 text-sm text-gray-500">
-                    <span>{doc.total_pages}ページ</span>
-                    <span>{formatDate(doc.created_at)}</span>
-                  </div>
-                  {doc.error_message && (
-                    <p className="text-sm text-red-600 mt-1">
-                      {doc.error_message}
-                    </p>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-2 ml-4">
                   <StatusBadge status={doc.status} />
+                </div>
+                <div className="flex items-center gap-3 mt-1 text-sm text-gray-500">
+                  <span>{doc.total_pages}ページ</span>
+                  <span>{formatDate(doc.created_at)}</span>
+                </div>
+                {doc.error_message && (
+                  <p className="text-sm text-red-600 mt-1">
+                    {doc.error_message}
+                  </p>
+                )}
+                <div className="flex items-center gap-2 mt-3">
                   {doc.status === "extracted" && (
                     <button
                       onClick={() => router.push(`/documents/${doc.id}`)}
-                      className="px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                      className="px-4 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
                     >
                       開く
                     </button>
                   )}
                   <button
                     onClick={() => handleDelete(doc.id, doc.title)}
-                    className="px-2 py-1 text-sm text-red-600 hover:bg-red-50 rounded"
+                    className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded"
                   >
                     削除
                   </button>
