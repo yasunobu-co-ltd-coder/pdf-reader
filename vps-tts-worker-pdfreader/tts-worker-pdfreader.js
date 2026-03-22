@@ -5,15 +5,17 @@
  * VOICEVOX Engine で音声を生成して Storage にアップロードする。
  *
  * 使い方:
- *   node tts-worker.js
- *   （.env を同ディレクトリに配置）
+ *   node tts-worker-pdfreader.js
+ *   （pdf-reader.env を同ディレクトリに配置）
  *
  * 環境変数:
  *   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
- *   VOICEVOX_API_URL   (default: http://localhost:50021)
+ *   VOICEVOX_BASE       (default: http://localhost:50021)
+ *   VOICEVOX_SPEAKER_ID (default: 1 — ジョブに speaker_id がない場合のフォールバック)
  *   POLL_INTERVAL_MS    (default: 3000)
  *   CONCURRENCY         (default: 2)
- *   STALE_TIMEOUT_MIN   (default: 10)
+ *   STALE_JOB_TIMEOUT_MIN (default: 10)
+ *   PROGRESS_UPDATE_INTERVAL (default: 3 — N チャンクごとに進捗更新)
  *   WORKER_ID           (default: hostname-PID)
  */
 
@@ -23,7 +25,7 @@ const path = require("path");
 
 // ---------- .env 読み込み ----------
 try {
-  require("dotenv").config({ path: path.join(__dirname, ".env") });
+  require("dotenv").config({ path: path.join(__dirname, "pdf-reader.env") });
 } catch {
   // dotenv がなければ環境変数をそのまま使う
 }
@@ -31,10 +33,12 @@ try {
 // ---------- 設定 ----------
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const VOICEVOX_BASE = process.env.VOICEVOX_API_URL || "http://localhost:50021";
+const VOICEVOX_BASE = process.env.VOICEVOX_BASE || "http://localhost:50021";
+const VOICEVOX_SPEAKER_ID = parseInt(process.env.VOICEVOX_SPEAKER_ID || "1", 10);
 const POLL_INTERVAL = parseInt(process.env.POLL_INTERVAL_MS || "3000", 10);
 const CONCURRENCY = parseInt(process.env.CONCURRENCY || "2", 10);
-const STALE_TIMEOUT_MIN = parseInt(process.env.STALE_TIMEOUT_MIN || "10", 10);
+const STALE_TIMEOUT_MIN = parseInt(process.env.STALE_JOB_TIMEOUT_MIN || "10", 10);
+const PROGRESS_UPDATE_INTERVAL = parseInt(process.env.PROGRESS_UPDATE_INTERVAL || "3", 10);
 const WORKER_ID =
   process.env.WORKER_ID || `${os.hostname()}-${process.pid}`;
 
@@ -150,7 +154,7 @@ async function recoverStaleJobs() {
 // ---------- ジョブ処理 ----------
 async function processJob(job) {
   const audioId = job.id;
-  const speakerId = job.speaker_id;
+  const speakerId = job.speaker_id ?? VOICEVOX_SPEAKER_ID;
   console.log(
     `[START] Job ${audioId} (speaker=${speakerId}, chunks=${job.total_chunks})`
   );
@@ -189,14 +193,16 @@ async function processJob(job) {
           const idx = chunk.chunk_index;
           const text = chunk.chunk_text;
 
-          // 進捗更新
-          await supabase
-            .from("document_audio")
-            .update({
-              current_chunk_index: idx,
-              progress_text: `${completed + 1}/${job.total_chunks} チャンク生成中`,
-            })
-            .eq("id", audioId);
+          // 進捗更新 (PROGRESS_UPDATE_INTERVAL チャンクごと、または最初のチャンク)
+          if (completed % PROGRESS_UPDATE_INTERVAL === 0 || completed === 0) {
+            await supabase
+              .from("document_audio")
+              .update({
+                current_chunk_index: idx,
+                progress_text: `${completed + 1}/${job.total_chunks} チャンク生成中`,
+              })
+              .eq("id", audioId);
+          }
 
           // VOICEVOX 2段階API
           const query = await audioQuery(text, speakerId);
@@ -230,14 +236,16 @@ async function processJob(job) {
           totalDuration += dur;
           completed++;
 
-          // audio 進捗更新
-          await supabase
-            .from("document_audio")
-            .update({
-              completed_chunks: completed,
-              progress_text: `${completed}/${job.total_chunks} チャンク完了`,
-            })
-            .eq("id", audioId);
+          // audio 進捗更新 (PROGRESS_UPDATE_INTERVAL ごと、または最終チャンク)
+          if (completed % PROGRESS_UPDATE_INTERVAL === 0 || completed === job.total_chunks) {
+            await supabase
+              .from("document_audio")
+              .update({
+                completed_chunks: completed,
+                progress_text: `${completed}/${job.total_chunks} チャンク完了`,
+              })
+              .eq("id", audioId);
+          }
 
           console.log(
             `  [CHUNK] ${idx}/${job.total_chunks - 1} done (${dur.toFixed(1)}s)`

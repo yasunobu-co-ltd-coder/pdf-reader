@@ -71,19 +71,14 @@ export default function DocumentListPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b px-6 py-4 flex items-center justify-between">
-        <h1 className="text-xl font-bold">PDF読み上げ</h1>
-        <div className="flex gap-3">
-          <button
-            onClick={() => router.push("/settings")}
-            className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900"
-          >
-            設定
-          </button>
+      <header className="bg-white border-b px-4 sm:px-6 py-4">
+        <div className="flex items-center gap-2">
+          <h1 className="text-xl font-bold text-gray-900">PDF読み上げ</h1>
+          <span className="text-xs text-gray-400 font-mono">{process.env.NEXT_PUBLIC_BUILD_ID || "dev"}</span>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto p-6">
+      <main className="max-w-4xl mx-auto p-4 sm:p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-semibold">文書一覧</h2>
           <button

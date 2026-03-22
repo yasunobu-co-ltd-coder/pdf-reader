@@ -47,7 +47,7 @@ export default function UploadPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b px-6 py-4">
+      <header className="bg-white border-b px-4 sm:px-6 py-4">
         <button
           onClick={() => router.push("/documents")}
           className="text-sm text-gray-600 hover:text-gray-900"
@@ -57,7 +57,7 @@ export default function UploadPage() {
         <h1 className="text-xl font-bold mt-1">PDFアップロード</h1>
       </header>
 
-      <main className="max-w-2xl mx-auto p-6">
+      <main className="max-w-2xl mx-auto p-4 sm:p-6">
         {/* ドロップゾーン */}
         <div
           className={`border-2 border-dashed rounded-lg p-12 text-center cursor-pointer transition-colors ${

@@ -9,9 +9,7 @@ import {
 } from "@/lib/db/documents";
 import { splitTextIntoChunks, computeTextHash } from "@/lib/tts/chunk-splitter";
 import { handleApiError, Errors } from "@/lib/utils/errors";
-import { VOICE_CHARACTERS, DEFAULT_SPEAKER_ID } from "@/types";
-
-const QUEUE_THRESHOLD = 4;
+import { DEFAULT_SPEAKER_ID } from "@/types";
 
 export async function POST(request: NextRequest) {
   try {
@@ -50,19 +48,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 4. キュー混雑チェック
+    // 4. ずんだもん固定
     const queueDepth = await getQueueDepth();
-    const isCongested = queueDepth >= QUEUE_THRESHOLD;
-
-    // 5. 生成対象のspeaker_idリスト決定
-    let targetSpeakers: number[];
-    if (isCongested) {
-      // 混雑時 → 選択中キャラのみ
-      targetSpeakers = [speaker_id || DEFAULT_SPEAKER_ID];
-    } else {
-      // 通常時 → 全4キャラ分のジョブを一括作成
-      targetSpeakers = VOICE_CHARACTERS.map((v) => v.speaker_id);
-    }
+    const targetSpeakers = [speaker_id || DEFAULT_SPEAKER_ID];
 
     const createdJobs: { audio_id: string; speaker_id: number; status: string; reused: boolean }[] = [];
 
@@ -124,7 +112,7 @@ export async function POST(request: NextRequest) {
         text_hash: textHash,
         total_chunks: chunks.length,
         queue_depth: queueDepth,
-        congested: isCongested,
+        congested: false,
         jobs: createdJobs,
       },
       error: null,
