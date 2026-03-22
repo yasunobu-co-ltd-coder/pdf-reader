@@ -28,6 +28,14 @@ export const Errors = {
       false,
       "このPDFからテキストを抽出できませんでした。テキストPDFのみ対応しています"
     ),
+  PDF_PARSE_FAILED: () =>
+    new AppError(
+      "PDF parsing failed (possibly too large or complex)",
+      "PDF_PARSE_FAILED",
+      422,
+      true,
+      "PDFの解析に失敗しました。ファイルが大きすぎるか複雑すぎる可能性があります。リトライしてください"
+    ),
   PDF_TOO_LARGE: () =>
     new AppError(
       "PDF file is too large",
