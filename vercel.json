@@ -3,8 +3,7 @@
   "buildCommand": "next build --webpack",
   "functions": {
     "src/app/api/documents/upload/route.ts": {
-      "maxDuration": 60,
-      "memory": 3009
+      "maxDuration": 60
     }
   }
 }
