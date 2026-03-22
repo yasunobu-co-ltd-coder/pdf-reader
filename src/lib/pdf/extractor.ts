@@ -1,3 +1,4 @@
+import "./node-polyfill";
 import { PDFParse } from "pdf-parse";
 import { Errors } from "@/lib/utils/errors";
 
