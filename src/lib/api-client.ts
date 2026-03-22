@@ -10,6 +10,15 @@ async function apiRequest<T>(url: string, options?: RequestInit): Promise<T> {
     ...options,
     headers: { ...options?.headers },
   });
+
+  // サーバーが500でHTMLを返す場合の対策
+  const contentType = response.headers.get("content-type") || "";
+  if (!contentType.includes("application/json")) {
+    throw new Error(
+      `サーバーエラー (${response.status}): レスポンスがJSONではありません。Vercelログを確認してください。`
+    );
+  }
+
   const json = await response.json();
   if (json.error) {
     throw new Error(json.error.message || "APIエラーが発生しました");

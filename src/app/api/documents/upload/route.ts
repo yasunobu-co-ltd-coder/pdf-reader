@@ -87,7 +87,9 @@ export async function POST(request: NextRequest) {
     }
 
     // 1. PDFからテキスト抽出
+    console.log(`[UPLOAD] Processing PDF: ${fileName} (${(buffer.length / 1024 / 1024).toFixed(1)}MB)`);
     const { text: rawText, totalPages } = await extractTextFromPdf(buffer);
+    console.log(`[UPLOAD] Extracted: ${rawText.length} chars, ${totalPages} pages`);
 
     // 2. ttsText変換
     const ttsText = convertRawTextToTtsText(rawText);
