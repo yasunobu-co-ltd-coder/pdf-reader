@@ -1,5 +1,4 @@
 import { NextRequest } from "next/server";
-import { getUserFromRequest } from "@/lib/db/auth";
 import {
   getDocument,
   getLatestAudioForSpeaker,
@@ -16,8 +15,6 @@ const QUEUE_THRESHOLD = 4;
 
 export async function POST(request: NextRequest) {
   try {
-    await getUserFromRequest(request);
-
     const body = await request.json();
     const { document_id, speaker_id } = body as {
       document_id: string;

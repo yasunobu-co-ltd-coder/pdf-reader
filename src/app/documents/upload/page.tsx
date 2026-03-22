@@ -150,7 +150,7 @@ export default function UploadPage() {
         </button>
 
         <p className="mt-3 text-xs text-gray-400 text-center">
-          テキストPDFのみ対応。画像PDF・スキャンPDFは今後対応予定です。
+          テキストPDF・画像PDF（スキャン）対応。OCRで自動テキスト抽出します。
         </p>
       </main>
     </div>

@@ -1,12 +1,9 @@
 import { NextRequest } from "next/server";
-import { getUserFromRequest } from "@/lib/db/auth";
 import { getLatestAudioForSpeaker, getChunksForAudio } from "@/lib/db/documents";
 import { handleApiError } from "@/lib/utils/errors";
 
 export async function GET(request: NextRequest) {
   try {
-    await getUserFromRequest(request);
-
     const { searchParams } = new URL(request.url);
     const documentId = searchParams.get("document_id");
     const speakerId = parseInt(searchParams.get("speaker_id") || "3");

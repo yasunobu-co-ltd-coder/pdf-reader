@@ -44,6 +44,16 @@ export async function getDocumentsByUser(userId: string): Promise<Document[]> {
   return (data as Document[]) || [];
 }
 
+/** 全文書取得（認証不要モード用） */
+export async function getAllDocuments(): Promise<Document[]> {
+  const { data, error } = await db()
+    .from("documents")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (error) throw Errors.INTERNAL(error.message);
+  return (data as Document[]) || [];
+}
+
 export async function updateDocument(
   documentId: string,
   updates: Partial<Pick<Document, "status" | "total_pages" | "raw_text" | "tts_text" | "text_hash" | "error_message" | "title">>

@@ -10,8 +10,7 @@
  *
  * 環境変数:
  *   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
- *   VOICEVOX_BASE_URL  (default: http://localhost:50021)
- *   VOICEVOX_USERNAME, VOICEVOX_PASSWORD (Basic認証, 任意)
+ *   VOICEVOX_API_URL   (default: http://localhost:50021)
  *   POLL_INTERVAL_MS    (default: 3000)
  *   CONCURRENCY         (default: 2)
  *   STALE_TIMEOUT_MIN   (default: 10)
@@ -32,9 +31,7 @@ try {
 // ---------- 設定 ----------
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const VOICEVOX_BASE = process.env.VOICEVOX_BASE_URL || "http://localhost:50021";
-const VOICEVOX_USER = process.env.VOICEVOX_USERNAME || "";
-const VOICEVOX_PASS = process.env.VOICEVOX_PASSWORD || "";
+const VOICEVOX_BASE = process.env.VOICEVOX_API_URL || "http://localhost:50021";
 const POLL_INTERVAL = parseInt(process.env.POLL_INTERVAL_MS || "3000", 10);
 const CONCURRENCY = parseInt(process.env.CONCURRENCY || "2", 10);
 const STALE_TIMEOUT_MIN = parseInt(process.env.STALE_TIMEOUT_MIN || "10", 10);
@@ -49,14 +46,6 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ---------- VOICEVOX 通信 ----------
-function voicevoxAuthHeader() {
-  if (!VOICEVOX_USER) return {};
-  const encoded = Buffer.from(`${VOICEVOX_USER}:${VOICEVOX_PASS}`).toString(
-    "base64"
-  );
-  return { Authorization: `Basic ${encoded}` };
-}
-
 async function audioQuery(text, speakerId) {
   const url = new URL("/audio_query", VOICEVOX_BASE);
   url.searchParams.set("text", text);
@@ -64,7 +53,6 @@ async function audioQuery(text, speakerId) {
 
   const res = await fetch(url.toString(), {
     method: "POST",
-    headers: voicevoxAuthHeader(),
     signal: AbortSignal.timeout(60_000),
   });
   if (!res.ok) {
@@ -80,7 +68,6 @@ async function synthesis(query, speakerId) {
   const res = await fetch(url.toString(), {
     method: "POST",
     headers: {
-      ...voicevoxAuthHeader(),
       "Content-Type": "application/json",
     },
     body: JSON.stringify(query),

@@ -5,7 +5,6 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { listDocuments, deleteDocumentApi } from "@/lib/api-client";
-import { createBrowserSupabase } from "@/lib/db/supabase";
 import StatusBadge from "@/components/ui/StatusBadge";
 import type { DocumentStatus } from "@/types";
 
@@ -51,12 +50,6 @@ export default function DocumentListPage() {
     return () => clearInterval(interval);
   }, [documents, fetchDocuments]);
 
-  async function handleLogout() {
-    const supabase = createBrowserSupabase();
-    await supabase.auth.signOut();
-    router.push("/login");
-  }
-
   async function handleDelete(id: string, title: string) {
     if (!confirm(`「${title}」を削除しますか？`)) return;
     try {
@@ -86,12 +79,6 @@ export default function DocumentListPage() {
             className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900"
           >
             設定
-          </button>
-          <button
-            onClick={handleLogout}
-            className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900"
-          >
-            ログアウト
           </button>
         </div>
       </header>

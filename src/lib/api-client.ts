@@ -1,22 +1,14 @@
 /**
  * クライアントサイドからAPIを呼び出すヘルパー
+ * 認証不要モード: Authorizationヘッダーなし
  */
 
 import { createBrowserSupabase } from "@/lib/db/supabase";
 
-async function getAuthHeaders(): Promise<Record<string, string>> {
-  const supabase = createBrowserSupabase();
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token;
-  if (!token) return {};
-  return { Authorization: `Bearer ${token}` };
-}
-
 async function apiRequest<T>(url: string, options?: RequestInit): Promise<T> {
-  const headers = await getAuthHeaders();
   const response = await fetch(url, {
     ...options,
-    headers: { ...headers, ...options?.headers },
+    headers: { ...options?.headers },
   });
   const json = await response.json();
   if (json.error) {
@@ -29,16 +21,44 @@ async function apiRequest<T>(url: string, options?: RequestInit): Promise<T> {
 // Documents API
 // =============================================
 
+/**
+ * PDFアップロード
+ * Vercelの4.5MBボディ制限を回避するため、
+ * クライアントから直接Supabase Storageにアップロードし、
+ * APIルートにはパスだけ送る
+ */
 export async function uploadDocument(file: File, title?: string) {
-  const formData = new FormData();
-  formData.append("file", file);
-  if (title) formData.append("title", title);
+  const supabase = createBrowserSupabase();
+
+  // 1. Supabase Storage に直接アップロード
+  const userId = "00000000-0000-0000-0000-000000000000";
+  const storagePath = `${userId}/${crypto.randomUUID()}/original.pdf`;
+
+  const { error: uploadError } = await supabase.storage
+    .from("pdfs")
+    .upload(storagePath, file, {
+      contentType: "application/pdf",
+      upsert: false,
+    });
+
+  if (uploadError) {
+    throw new Error(`ストレージアップロード失敗: ${uploadError.message}`);
+  }
+
+  // 2. APIルートにパスを送信してテキスト抽出
   return apiRequest<{
     id: string;
     title: string;
     status: string;
     total_pages: number;
-  }>("/api/documents/upload", { method: "POST", body: formData });
+  }>("/api/documents/upload", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      storage_path: storagePath,
+      file_name: title || file.name,
+    }),
+  });
 }
 
 export async function listDocuments() {

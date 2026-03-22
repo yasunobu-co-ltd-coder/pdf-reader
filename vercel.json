@@ -3,10 +3,14 @@
   "buildCommand": "next build --webpack",
   "functions": {
     "src/app/api/documents/upload/route.ts": {
-      "maxDuration": 60
+      "maxDuration": 300,
+      "memory": 1024
     },
-    "src/app/api/documents/[id]/generate-audio/route.ts": {
-      "maxDuration": 300
+    "src/app/api/tts/generate/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/tts/batch-generate/route.ts": {
+      "maxDuration": 60
     }
   }
 }

@@ -1,12 +1,9 @@
-import { NextRequest } from "next/server";
-import { getUserFromRequest } from "@/lib/db/auth";
-import { getDocumentsByUser } from "@/lib/db/documents";
+import { getAllDocuments } from "@/lib/db/documents";
 import { handleApiError } from "@/lib/utils/errors";
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const userId = await getUserFromRequest(request);
-    const documents = await getDocumentsByUser(userId);
+    const documents = await getAllDocuments();
 
     // テキスト本文はリスト表示では不要なので除外
     const list = documents.map((doc) => ({

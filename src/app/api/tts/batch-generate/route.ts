@@ -1,7 +1,6 @@
 import { NextRequest } from "next/server";
-import { getUserFromRequest } from "@/lib/db/auth";
 import {
-  getDocumentsByUser,
+  getAllDocuments,
   getLatestAudioForSpeaker,
   createAudioJob,
   insertChunkRecords,
@@ -15,7 +14,6 @@ const MAX_BATCH_SIZE = 20;
 
 export async function POST(request: NextRequest) {
   try {
-    const userId = await getUserFromRequest(request);
     const body = await request.json();
     const {
       speaker_id = DEFAULT_SPEAKER_ID,
@@ -25,7 +23,7 @@ export async function POST(request: NextRequest) {
     const limit = Math.min(batch_size, MAX_BATCH_SIZE);
 
     // 音声未生成の文書を取得
-    const documents = await getDocumentsByUser(userId);
+    const documents = await getAllDocuments();
     const targets = documents.filter(
       (d) => d.status === "extracted" && d.tts_text && d.tts_text.trim().length > 0
     );
