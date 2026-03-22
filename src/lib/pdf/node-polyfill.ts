@@ -34,6 +34,31 @@ if (typeof globalThis.DOMMatrix === "undefined") {
   };
 }
 
+if (typeof globalThis.ImageData === "undefined") {
+  // @ts-expect-error Minimal ImageData polyfill for pdfjs-dist
+  globalThis.ImageData = class ImageData {
+    width: number;
+    height: number;
+    data: Uint8ClampedArray;
+    colorSpace: string = "srgb";
+    constructor(
+      dataOrWidth: Uint8ClampedArray | number,
+      widthOrHeight: number,
+      height?: number
+    ) {
+      if (typeof dataOrWidth === "number") {
+        this.width = dataOrWidth;
+        this.height = widthOrHeight;
+        this.data = new Uint8ClampedArray(dataOrWidth * widthOrHeight * 4);
+      } else {
+        this.data = dataOrWidth;
+        this.width = widthOrHeight;
+        this.height = height || (dataOrWidth.length / (widthOrHeight * 4));
+      }
+    }
+  };
+}
+
 if (typeof globalThis.Path2D === "undefined") {
   // @ts-expect-error Minimal Path2D stub
   globalThis.Path2D = class Path2D {

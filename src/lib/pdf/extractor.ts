@@ -47,7 +47,8 @@ export async function extractTextFromPdf(
       `[PDF] Insufficient text (${text.length} chars, ${Math.round(charsPerPage)} chars/page). Trying OCR...`
     );
   } catch (error) {
-    console.log("[PDF] Text extraction failed, trying OCR...", error);
+    console.error("[PDF] Text extraction failed:", error instanceof Error ? error.message : error);
+    console.error("[PDF] Stack:", error instanceof Error ? error.stack : "N/A");
   } finally {
     if (parser) {
       try {
@@ -79,7 +80,8 @@ export async function extractTextFromPdf(
     ) {
       throw error;
     }
-    console.error("OCR error:", error);
+    console.error("[PDF] OCR error:", error instanceof Error ? error.message : error);
+    console.error("[PDF] OCR Stack:", error instanceof Error ? error.stack : "N/A");
     throw Errors.PDF_NO_TEXT();
   }
 }
